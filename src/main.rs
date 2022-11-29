@@ -1,3 +1,5 @@
+#![feature(array_windows)]
+
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -10,24 +12,18 @@ fn main() {
 
     println!("In file {}", file_path);
 
-    let mut count = -1;
-    let mut prevDepth = -1;
-
     if let Ok(lines) = read_lines(file_path) {
-        // Consumes the iterator, returns an (Optional) String
-        for line in lines {
-            if let Ok(depth) = line {
-                let temp = depth.parse::<i32>().unwrap();
-                if prevDepth < temp {
-                    count += 1;
-                }
-                prevDepth = temp;
-                // count += 1;
-            }
-        }
+        let lines_as_vector: Vec<_> = lines
+            .map(|l| l.expect("error").parse::<i32>().unwrap())
+            .collect();
+        let window_of_3: Vec<_> = lines_as_vector
+            .array_windows()
+            .map(|[a, b, c]| a + b + c)
+            .collect();
+        let sum_of_window = window_of_3.array_windows().filter(|[a, b]| b > a).count();
+        dbg!(window_of_3);
+        dbg!(sum_of_window);
     }
-
-    println!("Number of lines: {}", count);
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
